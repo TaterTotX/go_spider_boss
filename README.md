@@ -45,4 +45,6 @@
 > 
 >希望大家早日找到工作 加油！
 > 
->
+
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zypotato/go_spider_boss.git&type=Date)](https://star-history.com/#zypotato/go_spider_boss.git&Date)
