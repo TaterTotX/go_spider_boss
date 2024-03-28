@@ -46,5 +46,3 @@
 >希望大家早日找到工作 加油！
 > 
 >
-> 
-> wails build -platform windows/amd64
