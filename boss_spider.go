@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
+	"os/exec"
 	"regexp"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -58,23 +62,16 @@ func page_message_send(bc *BrowserController, message_history_xpath, chat_input_
 
 }
 
-func boss_spider_main(u, hello_text, regexp_text string) string {
+func boss_spider_main(ws chan string, hello_text, regexp_text string) string {
+	u := <-ws
 
-	if len(u) < 10 {
-		return "报错啦 看看是不是ws值没填对呀"
-	}
 	//定义常量
 	next_page_element_xpath, job_list_elements_xpath, chat_with_boss_elements_xpath, chat_input_element_xpath, send_message_xpath, message_history_xpath, chat_speed := get_const_info()
 
-	boss_spider, err := NewBrowserController(u)
-
-	if err != nil {
-		return "报错啦 看看是不是ws值没填对呀"
-	} else if len(hello_text) < 3 {
-		return "报错啦 看看是不是打招呼语忘记填啦"
-	} else if len(regexp_text) < 3 {
-		return "报错啦 看看是不是岗位关键词忘记填啦"
-	}
+	boss_spider, _ := NewBrowserController(u)
+	time.Sleep(5 * time.Second)
+	boss_spider.Browser.MustPage().MustNavigate("https://www.zhipin.com/web/geek/job?query=")
+	time.Sleep(60 * time.Second)
 
 	////翻页次数
 	for i := 0; i < 11; i++ {
@@ -143,5 +140,59 @@ func boss_spider_main(u, hello_text, regexp_text string) string {
 
 	}
 	return ""
+
+}
+
+func start_chrome_main(wsChan chan string) {
+	// 创建一个字符串通道用于在协程之间传递 WebSocket URL
+
+	chrome := "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+	if runtime.GOOS == "darwin" {
+		chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+	}
+	cmd := exec.Command(chrome, "--remote-debugging-port=9222")
+
+	// 获取命令的标准输出管道
+	stdoutPipe, _ := cmd.StdoutPipe()
+	// 获取命令的标准错误输出管道
+	stderrPipe, _ := cmd.StderrPipe()
+
+	// 启动命令
+	if err := cmd.Start(); err != nil {
+		fmt.Println("命令启动失败:", err)
+		return
+	}
+
+	// 创建一个 go 协程来读取标准输出
+	go func() {
+		scanner := bufio.NewScanner(stdoutPipe)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+	}()
+
+	// 创建另一个 go 协程来读取标准错误输出
+	go func() {
+		scanner := bufio.NewScanner(stderrPipe)
+		for scanner.Scan() {
+			line := scanner.Text()
+			// 检查行是否包含特定的前缀
+			if strings.HasPrefix(line, "DevTools listening on") {
+				// 使用 Split 函数分割字符串并获取 "on" 之后的部分
+				parts := strings.Split(line, "on ")
+				if len(parts) > 1 {
+					// 打印 "on" 之后的部分
+					wsChan <- parts[1]
+					break // 如果您只想打印第一次出现的地址，请加上 break
+				}
+			}
+		}
+		close(wsChan) // 关闭通道，表示没有更多的值会被发送
+	}()
+
+	// 等待命令完成
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("命令执行出错:", err)
+	}
 
 }
