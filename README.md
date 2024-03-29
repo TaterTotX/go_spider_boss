@@ -2,7 +2,7 @@
 
 ## 运行效果图
 
-[<img src="demo_image/img_3.png"/>](demo_image/img_3.png)
+[<img src="demo_image/img.png"/>](demo_image/img.png)
 
 ## [安装包地址](https://github.com/zypotato/go_spider_boss/releases/tag/%E5%AE%89%E8%A3%85%E5%8C%85)
 
