@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
+	"log"
 	"os/exec"
 	"regexp"
 	"runtime"
@@ -143,10 +144,10 @@ func boss_spider_main(ws chan string, hello_text, regexp_text string) string {
 
 }
 
-func start_chrome_main(wsChan chan string) {
+func start_chrome_main(wsChan, resultChan chan string) {
 	// 创建一个字符串通道用于在协程之间传递 WebSocket URL
 
-	chrome := "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+	chrome := "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 	if runtime.GOOS == "darwin" {
 		chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 	}
@@ -159,7 +160,10 @@ func start_chrome_main(wsChan chan string) {
 
 	// 启动命令
 	if err := cmd.Start(); err != nil {
-		fmt.Println("命令启动失败:", err)
+
+		log.Printf("命令启动失败:", err)
+		resultChan <- "浏览器启动失败,请检查浏览器启动路径是否在C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe  并以管理员身份运行此程序"
+
 		return
 	}
 

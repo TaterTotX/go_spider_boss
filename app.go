@@ -35,7 +35,8 @@ func (a *App) Greet(name, helloText, regexp_text string) string {
 			return
 		}
 
-		go start_chrome_main(ws)
+		go start_chrome_main(ws, resultChan)
+
 		resultChan <- boss_spider_main(ws, helloText, regexp_text)
 
 	}()
